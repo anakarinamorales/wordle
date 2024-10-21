@@ -11,6 +11,9 @@ export default function Home(): React.ReactElement {
   const [apiWord, setApiWord] = useState(() => '');
   const [previousAttempts, setPreviousAttempts] = useState<string[]>(() => []);
   const maxGuess = 5;
+  const [wordStyleByLetter, setWordStyleByLetter] = useState<{
+    [key: number]: string;
+  }>(() => ({}));
 
   const {
     getValues,
@@ -35,6 +38,18 @@ export default function Home(): React.ReactElement {
     resetFormState({ answer: '' });
     handleFetchWord();
     setPreviousAttempts([]);
+  };
+
+  const compareWords = (currentWord: string) => {
+    const result: { [key: number]: string } = {};
+    for (let i = 0; i < currentWord.length; i++) {
+      const letterIndex = apiWord.indexOf(currentWord[i]);
+      // result[i] = apiWord.indexOf(currentWord[i]);
+      result[i] =
+        letterIndex !== -1 ? (letterIndex === i ? 'green' : 'orange') : 'black';
+    }
+
+    return result;
   };
 
   const handleAttempt = (event: React.FormEvent) => {
@@ -67,9 +82,13 @@ export default function Home(): React.ReactElement {
       console.log('TRY AGAIN!');
       setPreviousAttempts([...previousAttempts, currentWord]);
       setCurrentRow(currentRow + 1);
+      const result = compareWords(currentWord);
+      setWordStyleByLetter(result);
       return true;
     }
   };
+
+  console.log(wordStyleByLetter[0]);
 
   return (
     <>
@@ -80,11 +99,20 @@ export default function Home(): React.ReactElement {
       <form onSubmit={handleAttempt}>
         <br />
         {previousAttempts &&
-          previousAttempts.map((item, index) => {
-            console.log(item, index);
+          previousAttempts.map((item, wordIndex) => {
             return (
-              <span key={`${item}${index}`}>
-                {item}
+              <span key={`${item}${wordIndex}`}>
+                {item.split('').map((letter, letterIndex) => {
+                  const letterColor = wordStyleByLetter[letterIndex];
+                  return (
+                    <span
+                      key={letter + letterIndex}
+                      style={{ color: letterColor }}
+                    >
+                      {letter}
+                    </span>
+                  );
+                })}
                 <br />
               </span>
             );
