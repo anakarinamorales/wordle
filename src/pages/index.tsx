@@ -1,4 +1,5 @@
-import { getWord } from '@/utils/api';
+import Letter from '@/components/letter';
+import WordConfiguration from '@/components/wordConfig';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -22,21 +23,11 @@ export default function Home(): React.ReactElement {
     reset: resetFormState,
   } = useForm<FormInputs>();
 
-  const handleFetchWord = async () => {
-    // event.preventDefault();
-    const word = await getWord(5);
-
-    if (word) {
-      setApiWord(word[0]);
-      alert(`Guess word:  ${word[0]}`);
-    }
-  };
 
   const resetGame = () => {
     setApiWord('');
     setCurrentRow(1);
     resetFormState({ answer: '' });
-    handleFetchWord();
     setPreviousAttempts([]);
   };
 
@@ -44,7 +35,6 @@ export default function Home(): React.ReactElement {
     const result: { [key: number]: string } = {};
     for (let i = 0; i < currentWord.length; i++) {
       const letterIndex = apiWord.indexOf(currentWord[i]);
-      // result[i] = apiWord.indexOf(currentWord[i]);
       result[i] =
         letterIndex !== -1 ? (letterIndex === i ? 'green' : 'orange') : 'black';
     }
@@ -57,29 +47,26 @@ export default function Home(): React.ReactElement {
     const values = getValues('answer');
     const currentWord = values;
 
-    // check if word matches
+    // whole word matches
     if (currentWord && currentWord === apiWord) {
       console.log('WON!');
       alert(`You won! Number of attempts: ${currentRow}`);
       resetGame();
-      // reset form
+      return true;
     }
 
-    // Word doesn't match
+    // Whole word doesn't match
     if (currentWord && currentWord !== apiWord) {
-      // If it's last attempt
+      // Check if it's last possible attempt
       if (currentRow >= maxGuess) {
-        console.log('LOST!');
         alert(
           `You lost :( . The word was ${apiWord}. Number of attempts: ${currentRow}.`
         );
-        // reset game state
         resetGame();
         return false;
       }
 
       resetField('answer');
-      console.log('TRY AGAIN!');
       setPreviousAttempts([...previousAttempts, currentWord]);
       setCurrentRow(currentRow + 1);
       const result = compareWords(currentWord);
@@ -88,13 +75,11 @@ export default function Home(): React.ReactElement {
     }
   };
 
-  console.log(wordStyleByLetter[0]);
-
   return (
-    <>
-      <button type='button' onClick={handleFetchWord}>
-        Fetch word
-      </button>
+    <main>
+      <h1>WORDLE</h1>
+      
+      {!apiWord && <WordConfiguration setApiWord={setApiWord} />}
 
       <form onSubmit={handleAttempt}>
         <br />
@@ -105,12 +90,11 @@ export default function Home(): React.ReactElement {
                 {item.split('').map((letter, letterIndex) => {
                   const letterColor = wordStyleByLetter[letterIndex];
                   return (
-                    <span
+                    <Letter
                       key={letter + letterIndex}
-                      style={{ color: letterColor }}
-                    >
-                      {letter}
-                    </span>
+                      color={letterColor}
+                      letter={letter}
+                    />
                   );
                 })}
                 <br />
@@ -128,6 +112,6 @@ export default function Home(): React.ReactElement {
         <br />
         <button type='submit'>Submit</button>
       </form>
-    </>
+    </main>
   );
 }
