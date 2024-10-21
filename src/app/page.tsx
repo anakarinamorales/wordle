@@ -1,4 +1,5 @@
-import { getWord } from '@/utils/api';
+'use client'
+import { getWord } from 'utils/api';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
