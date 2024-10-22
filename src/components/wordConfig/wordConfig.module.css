@@ -1,0 +1,14 @@
+.consigContainer {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.formContainer {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 14px;
+}

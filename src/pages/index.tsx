@@ -1,133 +1,125 @@
-import { getWord } from '@/utils/api';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useState } from 'react';
+import Link from 'next/link';
+
+import Button from '@/components/button';
+import SneakPeak from '@/components/sneakPeak';
+import UserAnswers from '@/components/userAnswers';
+import WordConfiguration from '@/components/wordConfig';
+
+import compareWords from '@/utils/compareWords';
+
+import styles from '@/styles/containers.module.css';
 
 type FormInputs = {
   answer: string;
 };
+
+export type PreviousAttemptsStyle = { [key: string]: string };
 
 export default function Home(): React.ReactElement {
   const [currentRow, setCurrentRow] = useState(() => 1);
   const [apiWord, setApiWord] = useState(() => '');
   const [previousAttempts, setPreviousAttempts] = useState<string[]>(() => []);
   const maxGuess = 5;
-  const [wordStyleByLetter, setWordStyleByLetter] = useState<{
-    [key: number]: string;
-  }>(() => ({}));
+  const [wordStyleByLetter, setWordStyleByLetter] = useState<
+    PreviousAttemptsStyle[]
+  >([] as PreviousAttemptsStyle[]);
 
   const {
     getValues,
     register,
     resetField,
     reset: resetFormState,
-  } = useForm<FormInputs>();
-
-  const handleFetchWord = async () => {
-    // event.preventDefault();
-    const word = await getWord(5);
-
-    if (word) {
-      setApiWord(word[0]);
-      alert(`Guess word:  ${word[0]}`);
-    }
-  };
+    handleSubmit,
+  } = useForm<FormInputs>({
+    shouldUseNativeValidation: true,
+  });
 
   const resetGame = () => {
     setApiWord('');
     setCurrentRow(1);
     resetFormState({ answer: '' });
-    handleFetchWord();
+    setWordStyleByLetter([]);
     setPreviousAttempts([]);
   };
 
-  const compareWords = (currentWord: string) => {
-    const result: { [key: number]: string } = {};
-    for (let i = 0; i < currentWord.length; i++) {
-      const letterIndex = apiWord.indexOf(currentWord[i]);
-      // result[i] = apiWord.indexOf(currentWord[i]);
-      result[i] =
-        letterIndex !== -1 ? (letterIndex === i ? 'green' : 'orange') : 'black';
-    }
-
-    return result;
-  };
-
-  const handleAttempt = (event: React.FormEvent) => {
-    event?.preventDefault();
+  const handleAttempt = () => {
+    // event?.preventDefault();
     const values = getValues('answer');
     const currentWord = values;
 
-    // check if word matches
+    // whole word matches
     if (currentWord && currentWord === apiWord) {
       console.log('WON!');
       alert(`You won! Number of attempts: ${currentRow}`);
       resetGame();
-      // reset form
+      return true;
     }
 
-    // Word doesn't match
+    // Whole word doesn't match
     if (currentWord && currentWord !== apiWord) {
-      // If it's last attempt
+      // Check if it's last possible attempt
       if (currentRow >= maxGuess) {
-        console.log('LOST!');
         alert(
           `You lost :( . The word was ${apiWord}. Number of attempts: ${currentRow}.`
         );
-        // reset game state
         resetGame();
         return false;
       }
 
       resetField('answer');
-      console.log('TRY AGAIN!');
       setPreviousAttempts([...previousAttempts, currentWord]);
       setCurrentRow(currentRow + 1);
-      const result = compareWords(currentWord);
-      setWordStyleByLetter(result);
+      const newStyles = wordStyleByLetter;
+      const result = compareWords(currentWord, apiWord);
+      newStyles.push(result);
+      setWordStyleByLetter(newStyles);
       return true;
     }
   };
 
-  console.log(wordStyleByLetter[0]);
-
   return (
-    <>
-      <button type='button' onClick={handleFetchWord}>
-        Fetch word
-      </button>
+    <main className={styles.mainContent}>
+      <h1>
+        <Link href='/'>WORDLE</Link>
+      </h1>
 
-      <form onSubmit={handleAttempt}>
-        <br />
-        {previousAttempts &&
-          previousAttempts.map((item, wordIndex) => {
-            return (
-              <span key={`${item}${wordIndex}`}>
-                {item.split('').map((letter, letterIndex) => {
-                  const letterColor = wordStyleByLetter[letterIndex];
-                  return (
-                    <span
-                      key={letter + letterIndex}
-                      style={{ color: letterColor }}
-                    >
-                      {letter}
-                    </span>
-                  );
-                })}
-                <br />
-              </span>
-            );
-          })}
+      {!apiWord && <WordConfiguration setApiWord={setApiWord} />}
 
-        <br />
-        <input
-          {...register('answer')}
-          type='text'
-          disabled={currentRow > maxGuess}
-          defaultValue=''
-        />
-        <br />
-        <button type='submit'>Submit</button>
-      </form>
-    </>
+      {apiWord && (
+        <>
+          {previousAttempts && (
+            <UserAnswers
+              previousAnswers={previousAttempts}
+              wordStyleByLetter={wordStyleByLetter}
+            />
+          )}
+          <form
+            className={styles.mainForm}
+            onSubmit={handleSubmit(handleAttempt)}
+          >
+            <input
+              {...register('answer', {
+                maxLength: {
+                  value: apiWord.length,
+                  message: `This input exceed word size. Word size is ${apiWord.length}`,
+                },
+                minLength: 1,
+                required: 'Word cannot be empty.',
+              })}
+              type='text'
+              disabled={currentRow > maxGuess}
+              defaultValue=''
+            />
+
+            {/* No button on design, but added it for accessibility */}
+            <Button type='submit'>Check word</Button>
+          </form>
+
+          <SneakPeak answer={apiWord} />
+        </>
+      )}
+    </main>
   );
 }
