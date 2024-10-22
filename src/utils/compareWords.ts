@@ -1,10 +1,21 @@
-export default function compareWords(typedWord: string, rightAnswer: string) {
-  const result: { [key: number]: string } = {};
-  for (let i = 0; i < typedWord.length; i++) {
-    const letterIndex = rightAnswer.indexOf(typedWord[i]);
-    result[i] =
-      letterIndex !== -1 ? (letterIndex === i ? 'var(--color-success)' : 'var(--color-warning)') : 'var(--color-text)';
-  }
-
-  return result;
+type ComparisonResultType = {
+  [Key: string]: string;
 };
+
+export default function compareWords(userAnswer: string, rightAnswer: string) {
+  const allStringLetters = userAnswer.toLowerCase();
+  const uniqueWordLetters = [...new Set(allStringLetters)];
+  const comparisonResult = {} as ComparisonResultType;
+
+  uniqueWordLetters.map((char: string, charIndex: number) => {
+    const rightAnswerCharIndex = rightAnswer.indexOf(userAnswer[charIndex]);
+    comparisonResult[char] =
+      rightAnswerCharIndex !== -1
+        ? rightAnswerCharIndex === charIndex
+          ? 'var(--color-success)'
+          : 'var(--color-warning)'
+        : 'var(--color-text)';
+  });
+
+  return comparisonResult;
+}

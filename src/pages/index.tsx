@@ -15,7 +15,7 @@ type FormInputs = {
   answer: string;
 };
 
-export type PreviousAttemptsStyle = { [key: number]: string };
+export type PreviousAttemptsStyle = { [key: string]: string };
 
 export default function Home(): React.ReactElement {
   const [currentRow, setCurrentRow] = useState(() => 1);

@@ -15,7 +15,8 @@ export default function UserAnswers({
         return (
           <span key={`${word}${wordIndex}`}>
             {word.split('').map((letter, letterIndex) => {
-              const letterColor = wordStyleByLetter[wordIndex][letterIndex];
+              console.log(1111, wordStyleByLetter[wordIndex]);
+              const letterColor = wordStyleByLetter[wordIndex][letter];
               return (
                 <Letter
                   key={letter + letterIndex}
