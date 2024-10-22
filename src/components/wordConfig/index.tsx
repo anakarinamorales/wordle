@@ -1,6 +1,10 @@
-import { getWord } from '@/utils/api';
 import { Dispatch, SetStateAction } from 'react';
 import { useForm } from 'react-hook-form';
+
+import { getWord } from '@/utils/api';
+import Button from '@/components/button';
+
+import styles from './wordConfig.module.css';
 
 type FormInputs = {
   size: number;
@@ -12,28 +16,37 @@ export default function WordConfiguration({
 }: {
   setApiWord: Dispatch<SetStateAction<string>>;
 }) {
-  const {
-    getValues,
-    register,
-  } = useForm<FormInputs>();
+  const { getValues, register, handleSubmit } = useForm<FormInputs>({
+    shouldUseNativeValidation: true,
+  });
 
-  const handleFetchWord = async (event: React.SyntheticEvent) => {
-    event.preventDefault();
+  const handleFetchWord = async () => {
     const { size } = getValues();
     const word = await getWord(size);
 
     if (word) {
       setApiWord(word[0]);
-      alert(`Guess word:  ${word[0]}`);
     }
   };
+        
 
   return (
-    <section>
-      <h2>Configure your word:</h2>
-      <form onSubmit={handleFetchWord}>
-        <input {...register('size')} type='number' defaultValue={5} />
-        <button type='submit'>Get word</button>
+    <section className={styles.consigContainer}>
+      <h2>Configure the size of your word:</h2>
+      <form
+        className={styles.formContainer}
+        onSubmit={handleSubmit(handleFetchWord)}
+      >
+        <input
+          {...register('size', {
+            required: 'Please, enter valid size for the word!',
+            valueAsNumber: true,
+            min: 2,
+          })}
+          type='number'
+          defaultValue={5}
+        />
+        <Button type='submit'>Get word</Button>
       </form>
     </section>
   );

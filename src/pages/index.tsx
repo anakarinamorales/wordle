@@ -1,7 +1,13 @@
-import Letter from '@/components/letter';
-import WordConfiguration from '@/components/wordConfig';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useState } from 'react';
+import Link from 'next/link';
+
+import Button from '@/components/button';
+import Letter from '@/components/letter';
+import SneakPeak from '@/components/sneakPeak';
+import WordConfiguration from '@/components/wordConfig';
+
+import styles from '@/styles/containers.module.css';
 
 type FormInputs = {
   answer: string;
@@ -22,7 +28,6 @@ export default function Home(): React.ReactElement {
     resetField,
     reset: resetFormState,
   } = useForm<FormInputs>();
-
 
   const resetGame = () => {
     setApiWord('');
@@ -76,42 +81,48 @@ export default function Home(): React.ReactElement {
   };
 
   return (
-    <main>
-      <h1>WORDLE</h1>
-      
+    <main className={styles.mainContent}>
+      <h1>
+        <Link href='/'>WORDLE</Link>
+      </h1>
+
       {!apiWord && <WordConfiguration setApiWord={setApiWord} />}
 
-      <form onSubmit={handleAttempt}>
-        <br />
-        {previousAttempts &&
-          previousAttempts.map((item, wordIndex) => {
-            return (
-              <span key={`${item}${wordIndex}`}>
-                {item.split('').map((letter, letterIndex) => {
-                  const letterColor = wordStyleByLetter[letterIndex];
-                  return (
-                    <Letter
-                      key={letter + letterIndex}
-                      color={letterColor}
-                      letter={letter}
-                    />
-                  );
-                })}
-                <br />
-              </span>
-            );
-          })}
+      {apiWord && (
+        <>
+          <form className={styles.mainForm} onSubmit={handleAttempt}>
+            {previousAttempts &&
+              previousAttempts.map((item, wordIndex) => {
+                return (
+                  <span key={`${item}${wordIndex}`}>
+                    {item.split('').map((letter, letterIndex) => {
+                      const letterColor = wordStyleByLetter[letterIndex];
+                      return (
+                        <Letter
+                          key={letter + letterIndex}
+                          color={letterColor}
+                          letter={letter}
+                        />
+                      );
+                    })}
+                    <br />
+                  </span>
+                );
+              })}
+            <input
+              {...register('answer')}
+              type='text'
+              disabled={currentRow > maxGuess}
+              defaultValue=''
+            />
 
-        <br />
-        <input
-          {...register('answer')}
-          type='text'
-          disabled={currentRow > maxGuess}
-          defaultValue=''
-        />
-        <br />
-        <button type='submit'>Submit</button>
-      </form>
+            {/* No button on design, but added it for accessibility */}
+            <Button type='submit'>Check word</Button>
+          </form>
+
+          <SneakPeak answer={apiWord} />
+        </>
+      )}
     </main>
   );
 }

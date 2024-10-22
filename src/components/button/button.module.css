@@ -1,0 +1,14 @@
+.button {
+  align-items: center;
+  align-items: center;
+  background: var(--color-button);
+  border-radius: 5px;
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  gap: 10px;
+  justify-content: center;
+  max-width: 228px;
+  min-height: 44px; /* 28px in the design, but 44 is the minimun for WCAG  */
+  padding: 0 7px;
+}
