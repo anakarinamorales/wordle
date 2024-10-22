@@ -3,24 +3,28 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 import Button from '@/components/button';
-import Letter from '@/components/letter';
 import SneakPeak from '@/components/sneakPeak';
 import WordConfiguration from '@/components/wordConfig';
 
+import compareWords from '@/utils/compareWords';
+
 import styles from '@/styles/containers.module.css';
+import UserAnswers from '@/components/userAnswers';
 
 type FormInputs = {
   answer: string;
 };
+
+export type PreviousAttemptsStyle = { [key: number]: string };
 
 export default function Home(): React.ReactElement {
   const [currentRow, setCurrentRow] = useState(() => 1);
   const [apiWord, setApiWord] = useState(() => '');
   const [previousAttempts, setPreviousAttempts] = useState<string[]>(() => []);
   const maxGuess = 5;
-  const [wordStyleByLetter, setWordStyleByLetter] = useState<{
-    [key: number]: string;
-  }>(() => ({}));
+  const [wordStyleByLetter, setWordStyleByLetter] = useState<PreviousAttemptsStyle[]>(
+    [] as PreviousAttemptsStyle[]
+  );
 
   const {
     getValues,
@@ -33,18 +37,8 @@ export default function Home(): React.ReactElement {
     setApiWord('');
     setCurrentRow(1);
     resetFormState({ answer: '' });
+    setWordStyleByLetter([]);
     setPreviousAttempts([]);
-  };
-
-  const compareWords = (currentWord: string) => {
-    const result: { [key: number]: string } = {};
-    for (let i = 0; i < currentWord.length; i++) {
-      const letterIndex = apiWord.indexOf(currentWord[i]);
-      result[i] =
-        letterIndex !== -1 ? (letterIndex === i ? 'green' : 'orange') : 'black';
-    }
-
-    return result;
   };
 
   const handleAttempt = (event: React.FormEvent) => {
@@ -74,8 +68,10 @@ export default function Home(): React.ReactElement {
       resetField('answer');
       setPreviousAttempts([...previousAttempts, currentWord]);
       setCurrentRow(currentRow + 1);
-      const result = compareWords(currentWord);
-      setWordStyleByLetter(result);
+      const newStyles = wordStyleByLetter;
+      const result = compareWords(currentWord, apiWord);
+      newStyles.push(result);
+      setWordStyleByLetter(newStyles);
       return true;
     }
   };
@@ -90,27 +86,18 @@ export default function Home(): React.ReactElement {
 
       {apiWord && (
         <>
+          {previousAttempts && (
+            <UserAnswers
+              previousAnswers={previousAttempts}
+              wordStyleByLetter={wordStyleByLetter}
+            />
+          )}
           <form className={styles.mainForm} onSubmit={handleAttempt}>
-            {previousAttempts &&
-              previousAttempts.map((item, wordIndex) => {
-                return (
-                  <span key={`${item}${wordIndex}`}>
-                    {item.split('').map((letter, letterIndex) => {
-                      const letterColor = wordStyleByLetter[letterIndex];
-                      return (
-                        <Letter
-                          key={letter + letterIndex}
-                          color={letterColor}
-                          letter={letter}
-                        />
-                      );
-                    })}
-                    <br />
-                  </span>
-                );
-              })}
             <input
-              {...register('answer')}
+              {...register('answer', {
+                min: 1,
+                max: apiWord.length,
+              })}
               type='text'
               disabled={currentRow > maxGuess}
               defaultValue=''
