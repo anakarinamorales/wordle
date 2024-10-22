@@ -1,31 +1,28 @@
 import { useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 
 import Button from '@/components/button';
 import SneakPeak from '@/components/sneakPeak';
-import UserAnswers from '@/components/userAnswers';
-import WordConfiguration from '@/components/wordConfig';
+import OldAnswers from '@/components/oldAnswers';
+import NewWordSetup from '@/components/newWordSetup';
 
-import compareWords from '@/utils/compareWords';
+import wordle from '@/utils/wordle';
 
 import styles from '@/styles/containers.module.css';
 
 type FormInputs = {
-  answer: string;
+  userAnswer: string;
 };
 
 export type PreviousAttemptsStyle = { [key: string]: string };
 
 export default function Home(): React.ReactElement {
-  const [currentRow, setCurrentRow] = useState(() => 1);
-  const [apiWord, setApiWord] = useState(() => '');
-  const [previousAttempts, setPreviousAttempts] = useState<string[]>(() => []);
-  const maxGuess = 5;
-  const [wordStyleByLetter, setWordStyleByLetter] = useState<
+  const [rightAnswer, setRightAnswer] = useState(() => '');
+  const [previousAnswers, setPreviousAnswers] = useState<string[]>(() => []);
+  const [previousAnswersColors, setPreviousAnswersColors] = useState<
     PreviousAttemptsStyle[]
-  >([] as PreviousAttemptsStyle[]);
-
+    >([] as PreviousAttemptsStyle[]);  
   const {
     getValues,
     register,
@@ -35,46 +32,45 @@ export default function Home(): React.ReactElement {
   } = useForm<FormInputs>({
     shouldUseNativeValidation: true,
   });
+  const numberOfTries = useMemo(
+    () => previousAnswers.length + 1,
+    [previousAnswers]
+  );
+  const maxGuesses = 5;
 
   const resetGame = () => {
-    setApiWord('');
-    setCurrentRow(1);
-    resetFormState({ answer: '' });
-    setWordStyleByLetter([]);
-    setPreviousAttempts([]);
+    setRightAnswer('');
+    setPreviousAnswers([]);
+    setPreviousAnswersColors([]);
+    resetFormState({ userAnswer: '' });
   };
 
-  const handleAttempt = () => {
-    // event?.preventDefault();
-    const values = getValues('answer');
-    const currentWord = values;
+  const onSubmit = () => {
+    const values = getValues('userAnswer');
+    const userAnswer = values;
 
     // whole word matches
-    if (currentWord && currentWord === apiWord) {
-      console.log('WON!');
-      alert(`You won! Number of attempts: ${currentRow}`);
+    if (userAnswer && userAnswer === rightAnswer) {
+      alert(`You won! Number of attempts: ${numberOfTries}`);
       resetGame();
       return true;
     }
 
-    // Whole word doesn't match
-    if (currentWord && currentWord !== apiWord) {
-      // Check if it's last possible attempt
-      if (currentRow >= maxGuess) {
+        if (userAnswer && userAnswer !== rightAnswer) {
+      // Check if it's last try
+      if (numberOfTries >= maxGuesses) {
         alert(
-          `You lost :( . The word was ${apiWord}. Number of attempts: ${currentRow}.`
+          `You lost :( . The word was ${rightAnswer}. Number of attempts: ${numberOfTries}.`
         );
         resetGame();
         return false;
       }
 
-      resetField('answer');
-      setPreviousAttempts([...previousAttempts, currentWord]);
-      setCurrentRow(currentRow + 1);
-      const newStyles = wordStyleByLetter;
-      const result = compareWords(currentWord, apiWord);
-      newStyles.push(result);
-      setWordStyleByLetter(newStyles);
+      // if it's not last try
+      setPreviousAnswers([...previousAnswers, userAnswer]);
+      const answersColors = wordle(userAnswer, rightAnswer);
+      setPreviousAnswersColors([...previousAnswersColors, answersColors]);
+      resetField('userAnswer');
       return true;
     }
   };
@@ -85,39 +81,41 @@ export default function Home(): React.ReactElement {
         <Link href='/'>WORDLE</Link>
       </h1>
 
-      {!apiWord && <WordConfiguration setApiWord={setApiWord} />}
+      {!rightAnswer && <NewWordSetup setRightAnswer={setRightAnswer} />}
 
-      {apiWord && (
+      {rightAnswer && (
         <>
-          {previousAttempts && (
-            <UserAnswers
-              previousAnswers={previousAttempts}
-              wordStyleByLetter={wordStyleByLetter}
+          {previousAnswers && (
+            <OldAnswers
+              previousAnswers={previousAnswers}
+              previousAnswersColors={previousAnswersColors}
             />
           )}
-          <form
-            className={styles.mainForm}
-            onSubmit={handleSubmit(handleAttempt)}
-          >
+          <form className={styles.wordForm} onSubmit={handleSubmit(onSubmit)}>
+            <label htmlFor='userAnswer' hidden>
+              Your answer
+            </label>
             <input
-              {...register('answer', {
+              {...register('userAnswer', {
                 maxLength: {
-                  value: apiWord.length,
-                  message: `This input exceed word size. Word size is ${apiWord.length}`,
+                  value: rightAnswer.length,
+                  message: `This input exceed word size. Word size is ${rightAnswer.length}`,
                 },
                 minLength: 1,
                 required: 'Word cannot be empty.',
               })}
-              type='text'
-              disabled={currentRow > maxGuess}
               defaultValue=''
+              disabled={numberOfTries > maxGuesses}
+              type='text'
             />
 
             {/* No button on design, but added it for accessibility */}
             <Button type='submit'>Check word</Button>
           </form>
 
-          <SneakPeak answer={apiWord} />
+          <SneakPeak answer={rightAnswer} />
+
+          <Button type='button' onClick={resetGame}>Change word</Button>
         </>
       )}
     </main>

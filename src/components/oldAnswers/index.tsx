@@ -2,12 +2,12 @@ import Letter from "@/components/letter";
 
 import { PreviousAttemptsStyle } from "@/pages";
 
-export default function UserAnswers({
+export default function OldAnswers({
   previousAnswers,
-  wordStyleByLetter,
+  previousAnswersColors,
 }: {
   previousAnswers: string[];
-  wordStyleByLetter: PreviousAttemptsStyle[];
+  previousAnswersColors: PreviousAttemptsStyle[];
 }) {
   return (
     <>
@@ -15,7 +15,7 @@ export default function UserAnswers({
         return (
           <span key={`${word}${wordIndex}`}>
             {[...word].map((letter, letterIndex) => {
-              const letterColor = wordStyleByLetter[wordIndex][letter];
+              const letterColor = previousAnswersColors[wordIndex][letter];
               return (
                 <Letter
                   key={letter + letterIndex}

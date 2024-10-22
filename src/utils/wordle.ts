@@ -2,7 +2,7 @@ type ComparisonResultType = {
   [Key: string]: string;
 };
 
-export default function compareWords(userAnswer: string, rightAnswer: string) {
+export default function wordle(userAnswer: string, rightAnswer: string) {
   const allStringLetters = userAnswer.toLowerCase();
   const uniqueUserAnswerLetters = [...new Set(allStringLetters)];
   const comparisonResult = {} as ComparisonResultType;

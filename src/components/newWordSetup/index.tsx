@@ -1,20 +1,21 @@
 import { Dispatch, SetStateAction } from 'react';
 import { useForm } from 'react-hook-form';
 
-import { getWord } from '@/utils/api';
 import Button from '@/components/button';
 
-import styles from './wordConfig.module.css';
+import { getWord } from '@/utils/api';
+
+import styles from './newWordSetup.module.css';
 
 type FormInputs = {
   size: number;
   language: string;
 };
 
-export default function WordConfiguration({
-  setApiWord,
+export default function NewWordSetup({
+  setRightAnswer,
 }: {
-  setApiWord: Dispatch<SetStateAction<string>>;
+  setRightAnswer: Dispatch<SetStateAction<string>>;
 }) {
   const { getValues, register, handleSubmit } = useForm<FormInputs>({
     shouldUseNativeValidation: true,
@@ -25,15 +26,15 @@ export default function WordConfiguration({
     const word = await getWord(size);
 
     if (word) {
-      setApiWord(word[0]);
+      setRightAnswer(word[0]);
     }
   };
 
   return (
-    <section className={styles.consigContainer}>
+    <section className={styles.setupContainer}>
       <h2>Configure the size of your word:</h2>
       <form
-        className={styles.formContainer}
+        className={styles.wordSizeForm}
         onSubmit={handleSubmit(handleFetchWord)}
       >
         <input

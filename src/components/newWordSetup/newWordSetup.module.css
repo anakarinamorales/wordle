@@ -1,11 +1,11 @@
-.consigContainer {
+.setupContainer {
   align-items: center;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.formContainer {
+.wordSizeForm {
     align-items: center;
     display: flex;
     flex-direction: column;
