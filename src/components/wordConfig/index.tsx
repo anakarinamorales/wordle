@@ -28,7 +28,6 @@ export default function WordConfiguration({
       setApiWord(word[0]);
     }
   };
-        
 
   return (
     <section className={styles.consigContainer}>
@@ -39,9 +38,9 @@ export default function WordConfiguration({
       >
         <input
           {...register('size', {
-            required: 'Please, enter valid size for the word!',
+            min: { value: 2, message: 'Minimum word size is 2.' },
+            required: 'Please, enter a size for the word.',
             valueAsNumber: true,
-            min: 2,
           })}
           type='number'
           defaultValue={5}

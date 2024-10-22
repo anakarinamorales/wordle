@@ -4,12 +4,12 @@ import Link from 'next/link';
 
 import Button from '@/components/button';
 import SneakPeak from '@/components/sneakPeak';
+import UserAnswers from '@/components/userAnswers';
 import WordConfiguration from '@/components/wordConfig';
 
 import compareWords from '@/utils/compareWords';
 
 import styles from '@/styles/containers.module.css';
-import UserAnswers from '@/components/userAnswers';
 
 type FormInputs = {
   answer: string;
@@ -22,16 +22,19 @@ export default function Home(): React.ReactElement {
   const [apiWord, setApiWord] = useState(() => '');
   const [previousAttempts, setPreviousAttempts] = useState<string[]>(() => []);
   const maxGuess = 5;
-  const [wordStyleByLetter, setWordStyleByLetter] = useState<PreviousAttemptsStyle[]>(
-    [] as PreviousAttemptsStyle[]
-  );
+  const [wordStyleByLetter, setWordStyleByLetter] = useState<
+    PreviousAttemptsStyle[]
+  >([] as PreviousAttemptsStyle[]);
 
   const {
     getValues,
     register,
     resetField,
     reset: resetFormState,
-  } = useForm<FormInputs>();
+    handleSubmit,
+  } = useForm<FormInputs>({
+    shouldUseNativeValidation: true,
+  });
 
   const resetGame = () => {
     setApiWord('');
@@ -41,8 +44,8 @@ export default function Home(): React.ReactElement {
     setPreviousAttempts([]);
   };
 
-  const handleAttempt = (event: React.FormEvent) => {
-    event?.preventDefault();
+  const handleAttempt = () => {
+    // event?.preventDefault();
     const values = getValues('answer');
     const currentWord = values;
 
@@ -92,11 +95,18 @@ export default function Home(): React.ReactElement {
               wordStyleByLetter={wordStyleByLetter}
             />
           )}
-          <form className={styles.mainForm} onSubmit={handleAttempt}>
+          <form
+            className={styles.mainForm}
+            onSubmit={handleSubmit(handleAttempt)}
+          >
             <input
               {...register('answer', {
-                min: 1,
-                max: apiWord.length,
+                maxLength: {
+                  value: apiWord.length,
+                  message: `This input exceed word size. Word size is ${apiWord.length}`,
+                },
+                minLength: 1,
+                required: 'Word cannot be empty.',
               })}
               type='text'
               disabled={currentRow > maxGuess}

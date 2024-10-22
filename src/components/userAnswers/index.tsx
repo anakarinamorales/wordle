@@ -14,8 +14,7 @@ export default function UserAnswers({
       {previousAnswers.map((word, wordIndex) => {
         return (
           <span key={`${word}${wordIndex}`}>
-            {word.split('').map((letter, letterIndex) => {
-              console.log(1111, wordStyleByLetter[wordIndex]);
+            {[...word].map((letter, letterIndex) => {
               const letterColor = wordStyleByLetter[wordIndex][letter];
               return (
                 <Letter
