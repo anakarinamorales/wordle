@@ -1,15 +1,15 @@
 import { useForm } from 'react-hook-form';
-import { useMemo, useState } from 'react';
 import Link from 'next/link';
 
 import Button from '@/components/button';
 import SneakPeak from '@/components/sneakPeak';
 import OldAnswers from '@/components/oldAnswers';
-import NewWordSetup from '@/components/newWordSetup';
+import NewWordSetup from '@/components/newWordSetup/newWordSetup.context';
 
 import wordle from '@/utils/wordle';
 
 import styles from '@/styles/containers.module.css';
+import { useWordContext } from '@/context/useWord';
 
 type FormInputs = {
   userAnswer: string;
@@ -18,11 +18,17 @@ type FormInputs = {
 export type PreviousAttemptsStyle = { [key: string]: string };
 
 export default function Home(): React.ReactElement {
-  const [rightAnswer, setRightAnswer] = useState(() => '');
-  const [previousAnswers, setPreviousAnswers] = useState<string[]>(() => []);
-  const [previousAnswersColors, setPreviousAnswersColors] = useState<
-    PreviousAttemptsStyle[]
-    >([] as PreviousAttemptsStyle[]);  
+  const {
+    maxGuesses,
+    numberOfAttempts,
+    oldAnswers,
+    rightAnswer,
+    setOldAnswers,
+    setRightAnswer,
+    setUserAnswerStyle,
+    userAnswerStyle,
+  } = useWordContext();
+
   const {
     getValues,
     register,
@@ -32,47 +38,40 @@ export default function Home(): React.ReactElement {
   } = useForm<FormInputs>({
     shouldUseNativeValidation: true,
   });
-  const numberOfTries = useMemo(
-    () => previousAnswers.length + 1,
-    [previousAnswers]
-  );
-  const maxGuesses = 5;
 
   const resetGame = () => {
     setRightAnswer('');
-    setPreviousAnswers([]);
-    setPreviousAnswersColors([]);
+    setOldAnswers([]);
+    setUserAnswerStyle([]);
     resetFormState({ userAnswer: '' });
   };
 
   const onSubmit = () => {
     const values = getValues('userAnswer');
-    const userAnswer = values;
+    const userAnswer = values.toLowerCase();
 
     // whole word matches
-    if (userAnswer && userAnswer === rightAnswer) {
-      alert(`You won! Number of attempts: ${numberOfTries}`);
+    if (userAnswer === rightAnswer.toLowerCase()) {
+      alert(`You won! Number of attempts: ${numberOfAttempts}`);
       resetGame();
       return true;
     }
 
-        if (userAnswer && userAnswer !== rightAnswer) {
-      // Check if it's last try
-      if (numberOfTries >= maxGuesses) {
-        alert(
-          `You lost :( . The word was ${rightAnswer}. Number of attempts: ${numberOfTries}.`
-        );
-        resetGame();
-        return false;
-      }
-
-      // if it's not last try
-      setPreviousAnswers([...previousAnswers, userAnswer]);
-      const answersColors = wordle(userAnswer, rightAnswer);
-      setPreviousAnswersColors([...previousAnswersColors, answersColors]);
-      resetField('userAnswer');
-      return true;
+    // Check if it's last try
+    if (numberOfAttempts >= maxGuesses) {
+      alert(
+        `You lost :( . The word was ${rightAnswer}. Number of attempts: ${numberOfAttempts}.`
+      );
+      resetGame();
+      return false;
     }
+
+    // if it's not last try
+    setOldAnswers([...oldAnswers, userAnswer]);
+    const wordleResult = wordle(userAnswer, rightAnswer);
+    setUserAnswerStyle([...userAnswerStyle, wordleResult]);
+    resetField('userAnswer');
+    return true;
   };
 
   return (
@@ -81,16 +80,12 @@ export default function Home(): React.ReactElement {
         <Link href='/'>WORDLE</Link>
       </h1>
 
-      {!rightAnswer && <NewWordSetup setRightAnswer={setRightAnswer} />}
+      {!rightAnswer && <NewWordSetup />}
 
       {rightAnswer && (
         <>
-          {previousAnswers && (
-            <OldAnswers
-              previousAnswers={previousAnswers}
-              previousAnswersColors={previousAnswersColors}
-            />
-          )}
+          {oldAnswers && <OldAnswers />}
+
           <form className={styles.wordForm} onSubmit={handleSubmit(onSubmit)}>
             <label htmlFor='userAnswer' hidden>
               Your answer
@@ -105,8 +100,10 @@ export default function Home(): React.ReactElement {
                 required: 'Word cannot be empty.',
               })}
               defaultValue=''
-              disabled={numberOfTries > maxGuesses}
+              disabled={numberOfAttempts > maxGuesses}
               type='text'
+              pattern={`[a-zA-Z]*`}
+              title='Only characters from A to Z. No symbols or numbers allowed'
             />
 
             {/* No button on design, but added it for accessibility */}
@@ -115,7 +112,9 @@ export default function Home(): React.ReactElement {
 
           <SneakPeak answer={rightAnswer} />
 
-          <Button type='button' onClick={resetGame}>Change word</Button>
+          <Button type='button' onClick={resetGame}>
+            Change word
+          </Button>
         </>
       )}
     </main>

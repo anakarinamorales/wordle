@@ -1,4 +1,3 @@
-import { Dispatch, SetStateAction } from 'react';
 import { useForm } from 'react-hook-form';
 
 import Button from '@/components/button';
@@ -6,20 +5,18 @@ import Button from '@/components/button';
 import { getWord } from '@/utils/api';
 
 import styles from './newWordSetup.module.css';
+import { useWordContext } from '@/context/useWord';
 
 type FormInputs = {
   size: number;
   language: string;
 };
 
-export default function NewWordSetup({
-  setRightAnswer,
-}: {
-  setRightAnswer: Dispatch<SetStateAction<string>>;
-}) {
-  const { getValues, register, handleSubmit } = useForm<FormInputs>({
+export default function NewWordSetup() {
+  const { register, handleSubmit, getValues } = useForm<FormInputs>({
     shouldUseNativeValidation: true,
   });
+  const { setRightAnswer } = useWordContext();
 
   const handleFetchWord = async () => {
     const { size } = getValues();
@@ -39,12 +36,14 @@ export default function NewWordSetup({
       >
         <input
           {...register('size', {
-            min: { value: 2, message: 'Minimum word size is 2.' },
             required: 'Please, enter a size for the word.',
+            min: { value: 2, message: 'Minimum word size is 2.' },
             valueAsNumber: true,
           })}
           type='number'
           defaultValue={5}
+          pattern='[0-9]'
+          title=''
         />
         <Button type='submit'>Get word</Button>
       </form>

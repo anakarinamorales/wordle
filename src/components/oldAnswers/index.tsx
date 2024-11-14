@@ -1,26 +1,23 @@
-import Letter from "@/components/letter";
+// import Letter from '@/components/letter';
 
-import { PreviousAttemptsStyle } from "@/pages";
+import { useWordContext } from '@/context/useWord';
+import Letter from '../letter';
 
-export default function OldAnswers({
-  previousAnswers,
-  previousAnswersColors,
-}: {
-  previousAnswers: string[];
-  previousAnswersColors: PreviousAttemptsStyle[];
-}) {
+export default function OldAnswers() {
+  const { oldAnswers, userAnswerStyle } = useWordContext();
+
   return (
     <>
-      {previousAnswers.map((word, wordIndex) => {
+      {oldAnswers.map((word, wordIndex) => {
         return (
           <span key={`${word}${wordIndex}`}>
             {[...word].map((letter, letterIndex) => {
-              const letterColor = previousAnswersColors[wordIndex][letter];
+              const wordStyle = userAnswerStyle[wordIndex];
               return (
                 <Letter
                   key={letter + letterIndex}
-                  color={letterColor}
-                  letter={letter}
+                  style={wordStyle[letterIndex]}
+                  char={letter}
                 />
               );
             })}
