@@ -1,5 +1,7 @@
 import { STATE_OPTIONS } from '@/utils/wordle';
 
+import styles from "./letter.module.css";
+
 type ColorOptions = Record<number, string>;
 
 const COLOR_OPTIONS = {
@@ -16,7 +18,15 @@ export default function GridLetter({
   char: string;
   style: number;
   }) {
-  const letterStyle = { color: COLOR_OPTIONS[style] };
+  const letterStyle = { backgroundColor: COLOR_OPTIONS[style] };
+  const statusIconStyle = style !== STATE_OPTIONS.DEFAULT ? style === STATE_OPTIONS.CORRECT ? styles.checkmark : styles.circle : ''; 
   
-  return <span style={letterStyle}>{char}</span>;
+  return (
+    <span
+      style={letterStyle}
+      className={`${styles.letterContainer} ${styles.status} ${statusIconStyle}`}
+    >
+      {char}
+    </span>
+  );
 }

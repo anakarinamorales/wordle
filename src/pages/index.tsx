@@ -31,13 +31,14 @@ export default function Home(): React.ReactElement {
 
   const {
     getValues,
-    register,
-    resetField,
-    reset: resetFormState,
     handleSubmit,
+    register,
+    reset: resetFormState,
+    resetField,
   } = useForm<FormInputs>({
     shouldUseNativeValidation: true,
   });
+
 
   const resetGame = () => {
     setRightAnswer('');
@@ -48,7 +49,7 @@ export default function Home(): React.ReactElement {
 
   const onSubmit = () => {
     const values = getValues('userAnswer');
-    const userAnswer = values.toLowerCase();
+    const userAnswer = values?.toLowerCase();
 
     // whole word matches
     if (userAnswer === rightAnswer.toLowerCase()) {
@@ -94,10 +95,15 @@ export default function Home(): React.ReactElement {
               {...register('userAnswer', {
                 maxLength: {
                   value: rightAnswer.length,
-                  message: `This input exceed word size. Word size is ${rightAnswer.length}`,
+                  message: `This word exceeds word size. Word size is ${rightAnswer?.length}`,
                 },
-                minLength: 1,
-                required: 'Word cannot be empty.',
+                minLength: {
+                  value: rightAnswer.length,
+                  message: `This word is smaller than the right word size. The right word has ${
+                    rightAnswer?.length
+                  } letters`,
+                },
+                required: 'Your attempt cannot be empty.',
               })}
               defaultValue=''
               disabled={numberOfAttempts > maxGuesses}
