@@ -1,0 +1,36 @@
+.letterContainer {
+  align-items: center;
+  border-radius: 4px;
+  border: 2px solid var(--color-inactive);
+  display: inline-flex;
+  height: 60px;
+  justify-content: center;
+  width: 60px;
+  position: relative;
+}
+
+
+.status::after {
+  content: '';
+  bottom: 4px;
+  display: inline-block;
+  position: absolute;
+}
+
+.checkmark::after {
+  border-bottom: 4px solid var(--color-text);
+  border-right: 4px solid var(--color-text);
+  height: 12px;
+  margin-left: 60%;
+  transform: rotate(45deg);
+  width: 4px;
+}
+
+.circle::after {
+  background-color: transparent;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  right: 4px;
+  box-shadow: inset 0px 0px 0px 4px var(--color-text);
+}
