@@ -34,6 +34,7 @@ export default function NewWordSetup() {
         className={styles.wordSizeForm}
         onSubmit={handleSubmit(handleFetchWord)}
       >
+        <label htmlFor="size" hidden>The size of the word you will have to guess</label>
         <input
           {...register('size', {
             required: 'Please, enter a size for the word.',
